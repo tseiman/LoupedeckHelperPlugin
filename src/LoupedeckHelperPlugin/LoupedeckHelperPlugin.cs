@@ -11,18 +11,14 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
     public sealed class LoupedeckHelperPlugin : Plugin
     {
-        private readonly MultiWheelFnState _multiWheelFnState = new();
 #if ENABLE_SHARED_STATE_IPC
+        private readonly MultiWheelFnState _multiWheelFnState = new();
         private SharedStateIpcServer _ipcServer;
 #endif
 
         public override Boolean UsesApplicationApiOnly => true;
 
         public override Boolean HasNoApplication => true;
-
-        internal static event Action PluginReady;
-
-        internal static MultiWheelFnState MultiWheelFnState { get; private set; }
 
         static LoupedeckHelperPlugin()
         {
@@ -37,7 +33,6 @@ namespace Loupedeck.LoupedeckHelperPlugin
             DiagnosticLog.Info($"[LoupedeckHelperPlugin] constructor after PluginLog.Init git={GetGitVersion()} config={GetBuildConfiguration()}");
             PluginResources.Init(this.Assembly);
             DiagnosticLog.Info($"[LoupedeckHelperPlugin] constructor after PluginResources.Init assembly={this.Assembly.FullName}");
-            MultiWheelFnState = this._multiWheelFnState;
             DiagnosticLog.Info("[LoupedeckHelperPlugin] constructor completed");
         }
 
@@ -67,8 +62,6 @@ namespace Loupedeck.LoupedeckHelperPlugin
             PluginLog.Info("[LoupedeckHelperPlugin] Shared-state IPC disabled at build time");
 #endif
 
-            DiagnosticLog.Info("[LoupedeckHelperPlugin] invoking PluginReady");
-            PluginReady?.Invoke();
             DiagnosticLog.Info("[LoupedeckHelperPlugin] Load completed");
             PluginLog.Info("[LoupedeckHelperPlugin] Load completed");
         }

@@ -6,7 +6,7 @@ Current contents:
 
 - one plugin class
 - one local `MultiWheel Fn` toggle action
-- local IPC provider for `get`, `set`, `toggle`, and `disable`
+- local read-only IPC provider for `get` and `watch`
 - small SDK-independent client library
 - package metadata
 
@@ -19,10 +19,8 @@ The IPC provider writes discovery to:
 The socket protocol is newline-delimited JSON:
 
 ```json
-{"id":"1","cmd":"get","key":"loupedeck.shared.multiwheel.keep-active"}
-{"id":"2","cmd":"set","key":"loupedeck.shared.multiwheel.keep-active","value":true}
-{"id":"3","cmd":"toggle","key":"loupedeck.shared.multiwheel.keep-active"}
-{"id":"4","cmd":"disable","key":"loupedeck.shared.multiwheel.keep-active"}
+{"cmd":"get","key":"loupedeck.shared.multiwheel.keep-active"}
+{"cmd":"watch","key":"loupedeck.shared.multiwheel.keep-active"}
 ```
 
 Build:
@@ -47,12 +45,9 @@ var keepActive = client.TryGetMultiWheelKeepActive(out var value) && value;
 CLI test client:
 
 ```sh
-dotnet run --project tools/LoupedeckSharedStateCli -- get
-dotnet run --project tools/LoupedeckSharedStateCli -- toggle
-dotnet run --project tools/LoupedeckSharedStateCli -- set true
-dotnet run --project tools/LoupedeckSharedStateCli -- disable
+dotnet run --project tools/LoupedeckSharedStateCli
 ```
 
-`get` prints `MultiWheel Fn: ON` or `MultiWheel Fn: OFF`. If the helper plugin is
-not running, it prints `MultiWheel Fn: OFF (provider unavailable)` and exits with
-code `1`.
+The CLI prints the current state once, then keeps running and prints every
+state change broadcast by the helper. If the helper plugin is not running, it
+prints `MultiWheel Fn: OFF (provider unavailable)` and exits with code `1`.

@@ -1,6 +1,7 @@
 namespace Loupedeck.LoupedeckHelperPlugin
 {
     using System;
+    using System.Collections.Concurrent;
     using System.IO;
     using System.IO.Pipes;
     using System.Net;
@@ -16,6 +17,7 @@ namespace Loupedeck.LoupedeckHelperPlugin
         private readonly MultiWheelFnState _state;
         private readonly Action<String> _log;
         private readonly Action<Exception, String> _logError;
+        private readonly ConcurrentDictionary<Guid, StreamWriter> _watchers = new();
         private readonly CancellationTokenSource _cancellation = new();
         private Socket _unixSocket;
 
@@ -24,6 +26,7 @@ namespace Loupedeck.LoupedeckHelperPlugin
             this._state = state;
             this._log = log;
             this._logError = logError;
+            this._state.Changed += this.OnStateChanged;
         }
 
         public void Start()
@@ -47,6 +50,7 @@ namespace Loupedeck.LoupedeckHelperPlugin
         {
             this._cancellation.Cancel();
             this._unixSocket?.Dispose();
+            this._state.Changed -= this.OnStateChanged;
             SharedStateDiscovery.Delete();
             this._cancellation.Dispose();
         }
@@ -120,8 +124,11 @@ namespace Loupedeck.LoupedeckHelperPlugin
                 try
                 {
                     var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-                    var response = this.HandleRequest(line);
-                    await writer.WriteLineAsync(response.AsMemory(), cancellationToken).ConfigureAwait(false);
+                    var keepOpen = await this.HandleRequestAsync(line, writer, cancellationToken).ConfigureAwait(false);
+                    if (keepOpen)
+                    {
+                        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -133,42 +140,51 @@ namespace Loupedeck.LoupedeckHelperPlugin
             }
         }
 
-        private String HandleRequest(String line)
+        private async Task<Boolean> HandleRequestAsync(String line, StreamWriter writer, CancellationToken cancellationToken)
         {
             try
             {
                 var request = JsonSerializer.Deserialize<Request>(line ?? "", JsonOptions());
                 if (request == null || request.Key != SharedStateDiscovery.Key)
                 {
-                    return Serialize(Response.Fail(request?.Id, "unknown-key"));
+                    await writer.WriteLineAsync(Serialize(Response.Fail("unknown-key")).AsMemory(), cancellationToken).ConfigureAwait(false);
+                    return false;
                 }
 
                 switch (request.Command)
                 {
                     case "get":
-                        return Serialize(Response.Success(request.Id, this._state.IsEnabled));
-                    case "set":
-                        if (!request.Value.HasValue)
-                        {
-                            return Serialize(Response.Fail(request.Id, "missing-value"));
-                        }
-
-                        this._state.Set(request.Value.Value);
-                        return Serialize(Response.Success(request.Id, this._state.IsEnabled));
-                    case "toggle":
-                        this._state.Toggle();
-                        return Serialize(Response.Success(request.Id, this._state.IsEnabled));
-                    case "disable":
-                        this._state.Disable();
-                        return Serialize(Response.Success(request.Id, this._state.IsEnabled));
+                        await writer.WriteLineAsync(Serialize(Response.State(this._state.IsEnabled)).AsMemory(), cancellationToken).ConfigureAwait(false);
+                        return false;
+                    case "watch":
+                        this._watchers[Guid.NewGuid()] = writer;
+                        return true;
                     default:
-                        return Serialize(Response.Fail(request.Id, "unknown-command"));
+                        await writer.WriteLineAsync(Serialize(Response.Fail("unknown-command")).AsMemory(), cancellationToken).ConfigureAwait(false);
+                        return false;
                 }
             }
             catch (Exception ex)
             {
                 this._logError(ex, "[LoupedeckSharedState] Invalid request");
-                return Serialize(Response.Fail(null, "invalid-request"));
+                await writer.WriteLineAsync(Serialize(Response.Fail("invalid-request")).AsMemory(), cancellationToken).ConfigureAwait(false);
+                return false;
+            }
+        }
+
+        private void OnStateChanged()
+        {
+            var message = Serialize(Response.Changed(this._state.IsEnabled));
+            foreach (var watcher in this._watchers)
+            {
+                try
+                {
+                    watcher.Value.WriteLine(message);
+                }
+                catch
+                {
+                    this._watchers.TryRemove(watcher.Key, out _);
+                }
             }
         }
 
@@ -178,29 +194,29 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
         private sealed class Request
         {
-            public String Id { get; set; }
-
             [JsonPropertyName("cmd")]
             public String Command { get; set; }
 
             public String Key { get; set; }
-
-            public Boolean? Value { get; set; }
         }
 
         private sealed class Response
         {
-            public String Id { get; set; }
+            public String Event { get; set; }
 
             public Boolean Ok { get; set; }
+
+            public String Key { get; set; }
 
             public Boolean? Value { get; set; }
 
             public String Error { get; set; }
 
-            public static Response Success(String id, Boolean value) => new() { Id = id, Ok = true, Value = value };
+            public static Response State(Boolean value) => new() { Ok = true, Key = SharedStateDiscovery.Key, Value = value };
 
-            public static Response Fail(String id, String error) => new() { Id = id, Ok = false, Error = error };
+            public static Response Changed(Boolean value) => new() { Event = "changed", Key = SharedStateDiscovery.Key, Value = value };
+
+            public static Response Fail(String error) => new() { Ok = false, Error = error };
         }
     }
 }

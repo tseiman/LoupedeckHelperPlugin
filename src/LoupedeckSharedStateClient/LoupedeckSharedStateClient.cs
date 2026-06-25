@@ -8,6 +8,7 @@ namespace Loupedeck.SharedState
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Threading;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
 
     public sealed class LoupedeckSharedStateClient
@@ -19,7 +20,7 @@ namespace Loupedeck.SharedState
         {
             try
             {
-                value = this.SendAsync("get", null).GetAwaiter().GetResult();
+                value = this.SendAsync("get").GetAwaiter().GetResult();
                 return true;
             }
             catch
@@ -33,7 +34,7 @@ namespace Loupedeck.SharedState
         {
             try
             {
-                return await this.SendAsync("get", null).ConfigureAwait(false);
+                return await this.SendAsync("get").ConfigureAwait(false);
             }
             catch
             {
@@ -41,38 +42,30 @@ namespace Loupedeck.SharedState
             }
         }
 
-        public Task SetMultiWheelKeepActiveAsync(Boolean value) => this.SendNoThrowAsync("set", value);
-
-        public Task ToggleMultiWheelKeepActiveAsync() => this.SendNoThrowAsync("toggle", null);
-
-        public Task DisableMultiWheelKeepActiveAsync() => this.SendNoThrowAsync("disable", null);
-
-        private async Task SendNoThrowAsync(String command, Boolean? value)
+        public async IAsyncEnumerable<Boolean> WatchMultiWheelKeepActiveAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            try
+            var endpoint = ReadEndpoint();
+            await using var connection = await Connection.OpenAsync(endpoint, cancellationToken).ConfigureAwait(false);
+
+            await connection.WriteLineAsync(CreateRequest("watch"), cancellationToken).ConfigureAwait(false);
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _ = await this.SendAsync(command, value).ConfigureAwait(false);
-            }
-            catch
-            {
+                var line = await connection.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+                var response = JsonSerializer.Deserialize<Response>(line, JsonOptions());
+                if (response?.Value.HasValue == true)
+                {
+                    yield return response.Value.Value;
+                }
             }
         }
 
-        private async Task<Boolean> SendAsync(String command, Boolean? value)
+        private async Task<Boolean> SendAsync(String command)
         {
             using var timeout = new CancellationTokenSource(Timeout);
             var endpoint = ReadEndpoint();
             await using var connection = await Connection.OpenAsync(endpoint, timeout.Token).ConfigureAwait(false);
 
-            var request = JsonSerializer.Serialize(new Request
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                Command = command,
-                Key = Key,
-                Value = value
-            }, JsonOptions());
-
-            await connection.WriteLineAsync(request, timeout.Token).ConfigureAwait(false);
+            await connection.WriteLineAsync(CreateRequest(command), timeout.Token).ConfigureAwait(false);
             var line = await connection.ReadLineAsync(timeout.Token).ConfigureAwait(false);
             var response = JsonSerializer.Deserialize<Response>(line, JsonOptions());
             if (response?.Ok != true)
@@ -82,6 +75,12 @@ namespace Loupedeck.SharedState
 
             return response.Value.GetValueOrDefault(false);
         }
+
+        private static String CreateRequest(String command) => JsonSerializer.Serialize(new Request
+        {
+            Command = command,
+            Key = Key
+        }, JsonOptions());
 
         private static String ReadEndpoint()
         {
@@ -114,21 +113,19 @@ namespace Loupedeck.SharedState
 
         private sealed class Request
         {
-            public String Id { get; set; }
-
             [JsonPropertyName("cmd")]
             public String Command { get; set; }
 
             public String Key { get; set; }
-
-            public Boolean? Value { get; set; }
         }
 
         private sealed class Response
         {
-            public String Id { get; set; }
+            public String Event { get; set; }
 
             public Boolean Ok { get; set; }
+
+            public String Key { get; set; }
 
             public Boolean? Value { get; set; }
 

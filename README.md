@@ -5,7 +5,7 @@ Minimal Loupedeck plugin used to isolate loader issues.
 Current contents:
 
 - one plugin class
-- one dummy action
+- one local `MultiWheel Fn` toggle action
 - package metadata
 
 Build:

@@ -5,6 +5,8 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
     public sealed class LoupedeckHelperPlugin : Plugin
     {
+        public static MultiWheelFnState MultiWheelFnState { get; } = new();
+
         public override Boolean UsesApplicationApiOnly => true;
 
         public override Boolean HasNoApplication => true;

@@ -7,6 +7,7 @@ Current contents:
 - one plugin class
 - one local `MultiWheel Fn` toggle action
 - local IPC provider for `get`, `set`, `toggle`, and `disable`
+- small SDK-independent client library
 - package metadata
 
 The IPC provider writes discovery to:
@@ -28,4 +29,17 @@ Build:
 
 ```sh
 dotnet build LoupedeckHelperPlugin.sln -c Debug
+```
+
+Client usage from another plugin:
+
+```xml
+<ProjectReference Include="..\..\..\LoupedeckHelperPlugin\src\LoupedeckSharedStateClient\LoupedeckSharedStateClient.csproj" />
+```
+
+```csharp
+using Loupedeck.SharedState;
+
+var client = new LoupedeckSharedStateClient();
+var keepActive = client.TryGetMultiWheelKeepActive(out var value) && value;
 ```

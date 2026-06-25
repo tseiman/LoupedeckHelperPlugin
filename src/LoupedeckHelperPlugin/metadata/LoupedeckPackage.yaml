@@ -1,0 +1,21 @@
+type: plugin4
+name: LoupedeckHelper
+displayName: Loupedeck Helper
+description: Shared local helper actions for Loupedeck plugins
+pluginFileName: LoupedeckHelperPlugin.dll
+version: 0.1
+author: tseiman
+copyright: Copyright (c) 2026 tseiman. All rights reserved.
+
+pluginFolderWin: win
+pluginFolderMac: mac
+
+supportedDevices:
+    - LoupedeckCtFamily
+
+pluginCapabilities:
+
+minimumLoupedeckVersion: 6.0
+
+license: MIT
+licenseUrl: https://opensource.org/licenses/MIT

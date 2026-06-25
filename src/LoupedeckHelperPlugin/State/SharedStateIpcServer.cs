@@ -32,23 +32,34 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
         public void Start()
         {
             this._cancellation = new CancellationTokenSource();
-            this._state.Changed += this.OnStateChanged;
+            try
+            {
+                if (this._endpoint.IsUnix)
+                {
+                    this.StartUnixSocket();
+                }
+                else if (this._endpoint.IsNamedPipe)
+                {
+                    _ = Task.Run(() => this.RunNamedPipeAcceptLoopAsync(this._cancellation.Token));
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported endpoint {this._endpoint.RawValue}");
+                }
 
-            if (this._endpoint.IsUnix)
-            {
-                this.StartUnixSocket();
+                this._state.Changed += this.OnStateChanged;
+                SharedStateDiscovery.Write(this._endpoint);
+                PluginLog.Info($"[LoupedeckSharedState] Started IPC endpoint {this._endpoint.RawValue}");
             }
-            else if (this._endpoint.IsNamedPipe)
+            catch
             {
-                _ = Task.Run(() => this.RunNamedPipeAcceptLoopAsync(this._cancellation.Token));
+                this._cancellation.Cancel();
+                this._cancellation.Dispose();
+                this._cancellation = null;
+                this._unixSocket?.Dispose();
+                this._unixSocket = null;
+                throw;
             }
-            else
-            {
-                throw new NotSupportedException($"Unsupported endpoint {this._endpoint.RawValue}");
-            }
-
-            SharedStateDiscovery.Write(this._endpoint);
-            PluginLog.Info($"[LoupedeckSharedState] Started IPC endpoint {this._endpoint.RawValue}");
         }
 
         public void Dispose()
@@ -74,6 +85,7 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
 
         private void StartUnixSocket()
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(this._endpoint.Address));
             TryDeleteFile(this._endpoint.Address);
             this._unixSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
             this._unixSocket.Bind(new UnixDomainSocketEndPoint(this._endpoint.Address));
@@ -239,10 +251,7 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
         {
             try
             {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
+                File.Delete(path);
             }
             catch
             {

@@ -30,8 +30,19 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
         public override void Load()
         {
-            this._ipcServer = new SharedStateIpcServer(this._multiWheelFnState);
-            this._ipcServer.Start();
+            try
+            {
+                this._ipcServer = new SharedStateIpcServer(this._multiWheelFnState);
+                this._ipcServer.Start();
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "[LoupedeckHelperPlugin] Shared-state IPC startup failed; loading action with local state only");
+                SharedStateDiscovery.Delete();
+                this._ipcServer?.Dispose();
+                this._ipcServer = null;
+            }
+
             PluginReady?.Invoke();
         }
 

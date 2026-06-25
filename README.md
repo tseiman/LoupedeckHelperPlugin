@@ -38,7 +38,7 @@ Example:
   "capabilities": [
     "loupedeck.shared.multiwheel.keep-active"
   ],
-  "endpoint": "unix:/tmp/loupedeck-shared-state.sock"
+  "endpoint": "unix:/Users/tseiman/Library/Application Support/LoupedeckSharedState/loupedeck-shared-state.sock"
 }
 ```
 

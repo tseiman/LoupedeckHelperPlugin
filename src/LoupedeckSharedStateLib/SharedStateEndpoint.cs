@@ -28,7 +28,7 @@ namespace Loupedeck.SharedState
                 return new SharedStateEndpoint($"pipe:{SharedStateConstants.DefaultWindowsPipeName}");
             }
 
-            return new SharedStateEndpoint($"unix:{Path.Combine(Path.GetTempPath(), SharedStateConstants.DefaultUnixSocketFileName)}");
+            return new SharedStateEndpoint($"unix:{Path.Combine(SharedStateDiscovery.GetDiscoveryDirectory(), SharedStateConstants.DefaultUnixSocketFileName)}");
         }
     }
 }

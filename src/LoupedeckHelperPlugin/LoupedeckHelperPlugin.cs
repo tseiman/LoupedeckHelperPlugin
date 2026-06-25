@@ -23,11 +23,6 @@ namespace Loupedeck.LoupedeckHelperPlugin
         static LoupedeckHelperPlugin()
         {
             DiagnosticLog.Info("[LoupedeckHelperPlugin] static constructor");
-            AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
-            {
-                DiagnosticLog.Info($"[LoupedeckHelperPlugin] AssemblyResolve requested {args.Name}");
-                return null;
-            };
             AppDomain.CurrentDomain.UnhandledException += (_, args) =>
             {
                 DiagnosticLog.Error("[LoupedeckHelperPlugin] UnhandledException", args.ExceptionObject as Exception);

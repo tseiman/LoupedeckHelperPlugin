@@ -24,7 +24,10 @@
     <Reference Include="PluginApi">
       <HintPath>$(PluginApiDir)PluginApi.dll</HintPath>
     </Reference>
-    <ProjectReference Include="..\LoupedeckSharedStateLib\LoupedeckSharedStateLib.csproj" />
+    <Compile Include="..\LoupedeckSharedStateLib\SharedStateConstants.cs" Link="SharedState\SharedStateConstants.cs" />
+    <Compile Include="..\LoupedeckSharedStateLib\SharedStateDiscovery.cs" Link="SharedState\SharedStateDiscovery.cs" />
+    <Compile Include="..\LoupedeckSharedStateLib\SharedStateDiscoveryInfo.cs" Link="SharedState\SharedStateDiscoveryInfo.cs" />
+    <Compile Include="..\LoupedeckSharedStateLib\SharedStateEndpoint.cs" Link="SharedState\SharedStateEndpoint.cs" />
   </ItemGroup>
 
   <Target Name="SetGitVersion" BeforeTargets="GenerateAssemblyInfo">

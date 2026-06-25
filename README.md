@@ -100,6 +100,24 @@ dotnet run --project tools/LoupedeckSharedStateTestClient -- watch
 
 If the helper is not running, clients fail quickly and should use `false`.
 
+## Diagnostics
+
+In addition to the Loupedeck plugin log, the plugin writes an early startup
+diagnostic log here on macOS:
+
+```text
+~/Library/Application Support/LoupedeckSharedState/helper-plugin-debug.log
+```
+
+If that path cannot be created, it falls back to:
+
+```text
+/tmp/helper-plugin-debug.log
+```
+
+This file logs constructor, command initialization, `Load()`, IPC startup, socket
+paths, discovery writes, assembly resolution requests and unhandled exceptions.
+
 ## Client Integration
 
 Reference `src/LoupedeckSharedStateLib/LoupedeckSharedStateLib.csproj` from a

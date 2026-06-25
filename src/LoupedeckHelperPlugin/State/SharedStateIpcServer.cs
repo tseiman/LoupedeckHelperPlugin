@@ -25,21 +25,26 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
 
         public SharedStateIpcServer(MultiWheelFnState state)
         {
+            DiagnosticLog.Info("[SharedStateIpcServer] constructor enter");
             this._state = state;
             this._endpoint = SharedStateEndpoint.CreateDefault();
+            DiagnosticLog.Info($"[SharedStateIpcServer] endpoint={this._endpoint.RawValue}");
         }
 
         public void Start()
         {
+            DiagnosticLog.Info("[SharedStateIpcServer] Start enter");
             this._cancellation = new CancellationTokenSource();
             try
             {
                 if (this._endpoint.IsUnix)
                 {
+                    DiagnosticLog.Info("[SharedStateIpcServer] starting Unix socket");
                     this.StartUnixSocket();
                 }
                 else if (this._endpoint.IsNamedPipe)
                 {
+                    DiagnosticLog.Info("[SharedStateIpcServer] starting named pipe accept loop");
                     _ = Task.Run(() => this.RunNamedPipeAcceptLoopAsync(this._cancellation.Token));
                 }
                 else
@@ -48,11 +53,14 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
                 }
 
                 this._state.Changed += this.OnStateChanged;
+                DiagnosticLog.Info($"[SharedStateIpcServer] writing discovery file {SharedStateDiscovery.GetDiscoveryFilePath()}");
                 SharedStateDiscovery.Write(this._endpoint);
                 PluginLog.Info($"[LoupedeckSharedState] Started IPC endpoint {this._endpoint.RawValue}");
+                DiagnosticLog.Info($"[SharedStateIpcServer] Start completed endpoint={this._endpoint.RawValue}");
             }
-            catch
+            catch (Exception ex)
             {
+                DiagnosticLog.Error("[SharedStateIpcServer] Start failed", ex);
                 this._cancellation.Cancel();
                 this._cancellation.Dispose();
                 this._cancellation = null;
@@ -64,6 +72,7 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
 
         public void Dispose()
         {
+            DiagnosticLog.Info("[SharedStateIpcServer] Dispose enter");
             this._state.Changed -= this.OnStateChanged;
             this._cancellation?.Cancel();
             this._unixSocket?.Dispose();
@@ -81,14 +90,21 @@ namespace Loupedeck.LoupedeckHelperPlugin.State
             }
 
             this._cancellation?.Dispose();
+            DiagnosticLog.Info("[SharedStateIpcServer] Dispose completed");
         }
 
         private void StartUnixSocket()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(this._endpoint.Address));
+            var socketDirectory = Path.GetDirectoryName(this._endpoint.Address);
+            DiagnosticLog.Info($"[SharedStateIpcServer] Unix socket directory={socketDirectory}");
+            Directory.CreateDirectory(socketDirectory);
+            DiagnosticLog.Info($"[SharedStateIpcServer] deleting stale Unix socket {this._endpoint.Address}");
             TryDeleteFile(this._endpoint.Address);
+            DiagnosticLog.Info("[SharedStateIpcServer] creating Unix socket");
             this._unixSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            DiagnosticLog.Info($"[SharedStateIpcServer] binding Unix socket {this._endpoint.Address}");
             this._unixSocket.Bind(new UnixDomainSocketEndPoint(this._endpoint.Address));
+            DiagnosticLog.Info("[SharedStateIpcServer] listening Unix socket");
             this._unixSocket.Listen(20);
             _ = Task.Run(() => this.RunUnixAcceptLoopAsync(this._cancellation.Token));
         }

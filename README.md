@@ -77,6 +77,14 @@ Requires .NET 8 and the Logi/Loupedeck Plugin Service SDK files.
 dotnet build LoupedeckHelperPlugin.sln -c Debug
 ```
 
+The helper plugin currently builds with IPC disabled by default to isolate
+Loupedeck loader issues. To include the socket provider again, build the plugin
+project with:
+
+```sh
+dotnet build src/LoupedeckHelperPlugin/LoupedeckHelperPlugin.csproj -c Debug -p:EnableSharedStateIpc=true
+```
+
 The plugin expects `PluginApi.dll` at the standard SDK locations used by the
 reference plugins:
 

@@ -5,12 +5,16 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
     using Loupedeck.LoupedeckHelperPlugin.Helpers;
     using Loupedeck.LoupedeckHelperPlugin.State;
+#if ENABLE_SHARED_STATE_IPC
     using Loupedeck.SharedState;
+#endif
 
     public sealed class LoupedeckHelperPlugin : Plugin
     {
         private readonly MultiWheelFnState _multiWheelFnState = new();
+#if ENABLE_SHARED_STATE_IPC
         private SharedStateIpcServer _ipcServer;
+#endif
 
         public override Boolean UsesApplicationApiOnly => true;
 
@@ -23,10 +27,6 @@ namespace Loupedeck.LoupedeckHelperPlugin
         static LoupedeckHelperPlugin()
         {
             DiagnosticLog.Info("[LoupedeckHelperPlugin] static constructor");
-            AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-            {
-                DiagnosticLog.Error("[LoupedeckHelperPlugin] UnhandledException", args.ExceptionObject as Exception);
-            };
         }
 
         public LoupedeckHelperPlugin()
@@ -45,6 +45,7 @@ namespace Loupedeck.LoupedeckHelperPlugin
         {
             DiagnosticLog.Info("[LoupedeckHelperPlugin] Load enter");
             PluginLog.Info("[LoupedeckHelperPlugin] Load enter");
+#if ENABLE_SHARED_STATE_IPC
             try
             {
                 DiagnosticLog.Info("[LoupedeckHelperPlugin] creating SharedStateIpcServer");
@@ -61,6 +62,10 @@ namespace Loupedeck.LoupedeckHelperPlugin
                 this._ipcServer?.Dispose();
                 this._ipcServer = null;
             }
+#else
+            DiagnosticLog.Info("[LoupedeckHelperPlugin] shared-state IPC disabled at build time");
+            PluginLog.Info("[LoupedeckHelperPlugin] Shared-state IPC disabled at build time");
+#endif
 
             DiagnosticLog.Info("[LoupedeckHelperPlugin] invoking PluginReady");
             PluginReady?.Invoke();
@@ -71,8 +76,10 @@ namespace Loupedeck.LoupedeckHelperPlugin
         public override void Unload()
         {
             DiagnosticLog.Info("[LoupedeckHelperPlugin] Unload enter");
+#if ENABLE_SHARED_STATE_IPC
             this._ipcServer?.Dispose();
             SharedStateDiscovery.Delete();
+#endif
             base.Unload();
             DiagnosticLog.Info("[LoupedeckHelperPlugin] Unload completed");
         }

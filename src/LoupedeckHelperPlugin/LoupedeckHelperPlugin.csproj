@@ -18,26 +18,12 @@
 
     <PluginDir Condition="$(OS) == 'Windows_NT'">$(LocalAppData)\Logi\LogiPluginService\Plugins\</PluginDir>
     <PluginDir Condition="$(OS) != 'Windows_NT'">~/Library/Application\ Support/Logi/LogiPluginService/Plugins/</PluginDir>
-
-    <EnableSharedStateIpc Condition="'$(EnableSharedStateIpc)' == ''">false</EnableSharedStateIpc>
-    <DefineConstants Condition="'$(EnableSharedStateIpc)' == 'true'">$(DefineConstants);ENABLE_SHARED_STATE_IPC</DefineConstants>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(EnableSharedStateIpc)' != 'true'">
-    <Compile Remove="State\SharedStateIpcServer.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="PluginApi">
       <HintPath>$(PluginApiDir)PluginApi.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(EnableSharedStateIpc)' == 'true'">
-    <Compile Include="..\LoupedeckSharedStateLib\SharedStateConstants.cs" Link="SharedState\SharedStateConstants.cs" />
-    <Compile Include="..\LoupedeckSharedStateLib\SharedStateDiscovery.cs" Link="SharedState\SharedStateDiscovery.cs" />
-    <Compile Include="..\LoupedeckSharedStateLib\SharedStateDiscoveryInfo.cs" Link="SharedState\SharedStateDiscoveryInfo.cs" />
-    <Compile Include="..\LoupedeckSharedStateLib\SharedStateEndpoint.cs" Link="SharedState\SharedStateEndpoint.cs" />
   </ItemGroup>
 
   <Target Name="SetGitVersion" BeforeTargets="GenerateAssemblyInfo">

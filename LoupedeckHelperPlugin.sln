@@ -2,11 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoupedeckSharedStateLib", "src\LoupedeckSharedStateLib\LoupedeckSharedStateLib.csproj", "{A9F11A35-3B44-4C92-AB24-63F53980666B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoupedeckHelperPlugin", "src\LoupedeckHelperPlugin\LoupedeckHelperPlugin.csproj", "{1B725600-51F7-412B-84C2-BB20471FB58D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoupedeckSharedStateTestClient", "tools\LoupedeckSharedStateTestClient\LoupedeckSharedStateTestClient.csproj", "{C95D16B9-1118-445E-BF1D-42425F997856}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,17 +10,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A9F11A35-3B44-4C92-AB24-63F53980666B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A9F11A35-3B44-4C92-AB24-63F53980666B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A9F11A35-3B44-4C92-AB24-63F53980666B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A9F11A35-3B44-4C92-AB24-63F53980666B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B725600-51F7-412B-84C2-BB20471FB58D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1B725600-51F7-412B-84C2-BB20471FB58D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B725600-51F7-412B-84C2-BB20471FB58D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B725600-51F7-412B-84C2-BB20471FB58D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C95D16B9-1118-445E-BF1D-42425F997856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C95D16B9-1118-445E-BF1D-42425F997856}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C95D16B9-1118-445E-BF1D-42425F997856}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C95D16B9-1118-445E-BF1D-42425F997856}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

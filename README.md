@@ -43,3 +43,16 @@ using Loupedeck.SharedState;
 var client = new LoupedeckSharedStateClient();
 var keepActive = client.TryGetMultiWheelKeepActive(out var value) && value;
 ```
+
+CLI test client:
+
+```sh
+dotnet run --project tools/LoupedeckSharedStateCli -- get
+dotnet run --project tools/LoupedeckSharedStateCli -- toggle
+dotnet run --project tools/LoupedeckSharedStateCli -- set true
+dotnet run --project tools/LoupedeckSharedStateCli -- disable
+```
+
+`get` prints `MultiWheel Fn: ON` or `MultiWheel Fn: OFF`. If the helper plugin is
+not running, it prints `MultiWheel Fn: OFF (provider unavailable)` and exits with
+code `1`.

@@ -5,7 +5,7 @@ Minimal Loupedeck plugin used to isolate loader issues.
 Current contents:
 
 - one plugin class
-- one local `MultiWheel Fn` toggle action
+- one local `MultiWheel Fn` momentary action
 - local read-only IPC provider for `get` and `watch`
 - small SDK-independent client library
 - package metadata
@@ -22,6 +22,10 @@ The socket protocol is newline-delimited JSON:
 {"cmd":"get","key":"loupedeck.shared.multiwheel.keep-active"}
 {"cmd":"watch","key":"loupedeck.shared.multiwheel.keep-active"}
 ```
+
+`loupedeck.shared.multiwheel.keep-active` is `true` only while the
+`MultiWheel Fn` action is physically pressed. Releasing the action broadcasts
+`false`.
 
 Build:
 

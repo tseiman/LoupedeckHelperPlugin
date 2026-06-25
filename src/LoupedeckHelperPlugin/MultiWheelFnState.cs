@@ -20,11 +20,6 @@ namespace Loupedeck.LoupedeckHelperPlugin
             }
         }
 
-        public void Toggle()
-        {
-            this.Set(!this.IsEnabled);
-        }
-
         public void Disable()
         {
             this.Set(false);

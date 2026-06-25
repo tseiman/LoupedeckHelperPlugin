@@ -5,7 +5,7 @@ namespace Loupedeck.LoupedeckHelperPlugin
     public sealed class MultiWheelFnCommand : PluginDynamicCommand
     {
         public MultiWheelFnCommand()
-            : base(groupName: "Shared State", displayName: "MultiWheel Fn", description: "Keeps compatible MultiWheel functions active after their action completes")
+            : base(groupName: "Shared State", displayName: "MultiWheel Fn", description: "Keeps compatible MultiWheel functions active while pressed")
         {
             this.IsWidget = true;
             LoupedeckHelperPlugin.MultiWheelFnState.Changed += this.OnStateChanged;
@@ -13,7 +13,33 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
         protected override void RunCommand(String actionParameter)
         {
-            LoupedeckHelperPlugin.MultiWheelFnState.Toggle();
+            LoupedeckHelperPlugin.MultiWheelFnState.Disable();
+        }
+
+        protected override Boolean ProcessButtonEvent2(String actionParameter, DeviceButtonEvent2 buttonEvent)
+        {
+            switch (buttonEvent.EventType)
+            {
+                case DeviceButtonEventType.Press:
+                case DeviceButtonEventType.LongPress:
+                case DeviceButtonEventType.RepeatPress:
+                    LoupedeckHelperPlugin.MultiWheelFnState.Set(true);
+                    return true;
+
+                case DeviceButtonEventType.Release:
+                    LoupedeckHelperPlugin.MultiWheelFnState.Set(false);
+                    return true;
+
+                default:
+                    return base.ProcessButtonEvent2(actionParameter, buttonEvent);
+            }
+        }
+
+        [Obsolete("Compatibility path for older button event routing.")]
+        protected override Boolean ProcessButtonEvent(String actionParameter, DeviceButtonEvent buttonEvent)
+        {
+            LoupedeckHelperPlugin.MultiWheelFnState.Set(buttonEvent.IsPressed);
+            return true;
         }
 
         protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize)

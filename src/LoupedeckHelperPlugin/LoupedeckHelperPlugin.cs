@@ -7,6 +7,8 @@ namespace Loupedeck.LoupedeckHelperPlugin
     {
         public static MultiWheelFnState MultiWheelFnState { get; } = new();
 
+        private SharedStateIpcServer _ipcServer;
+
         public override Boolean UsesApplicationApiOnly => true;
 
         public override Boolean HasNoApplication => true;
@@ -19,11 +21,27 @@ namespace Loupedeck.LoupedeckHelperPlugin
         public override void Load()
         {
             this.Log.Info("[LoupedeckHelperPlugin] Load");
+            try
+            {
+                this._ipcServer = new SharedStateIpcServer(
+                    MultiWheelFnState,
+                    message => this.Log.Info(message),
+                    (exception, message) => this.Log.Error(exception, message));
+                this._ipcServer.Start();
+            }
+            catch (Exception ex)
+            {
+                this.Log.Error(ex, "[LoupedeckHelperPlugin] Shared-state IPC startup failed");
+                this._ipcServer?.Dispose();
+                this._ipcServer = null;
+            }
         }
 
         public override void Unload()
         {
             this.Log.Info("[LoupedeckHelperPlugin] Unload");
+            this._ipcServer?.Dispose();
+            this._ipcServer = null;
             base.Unload();
         }
 

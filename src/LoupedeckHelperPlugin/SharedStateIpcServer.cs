@@ -113,9 +113,9 @@ namespace Loupedeck.LoupedeckHelperPlugin
 
         private async Task HandleClientAsync(Stream stream, CancellationToken cancellationToken)
         {
-            await using (stream.ConfigureAwait(false))
+            await using (stream)
             using (var reader = new StreamReader(stream, Encoding.UTF8, false, 1024, leaveOpen: true))
-            await using (var writer = new StreamWriter(stream, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true }.ConfigureAwait(false))
+            await using (var writer = new StreamWriter(stream, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true })
             {
                 try
                 {
